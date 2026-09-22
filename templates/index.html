@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuTools - Complete PDF & Document Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .animate-dropzone-active { animation: pulse-subtle 1.5s infinite ease-in-out; }
+        .toast-enter { transform: translateY(100%); opacity: 0; }
+        .toast-show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+    <!-- Header -->
+    <header class="bg-white border-b py-4 px-8 flex justify-between items-center shadow-sm sticky top-0 z-40">
+        <div class="font-bold text-2xl text-blue-600 flex items-center gap-2">
+            <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span>DocuTools</span>
+        </div>
+
+        <div id="authNav" class="flex items-center gap-3"></div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-5xl mx-auto w-full px-4 py-8 flex-1 flex flex-col items-center">
+        <!-- Tools Bar -->
+        <div class="flex flex-wrap justify-center gap-1.5 mb-8 w-full bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+            <button onclick="setTool('pdf-to-word', 'PDF to Word', 'Convert PDF files into editable Word documents.', '.pdf', false)" id="btn-pdf-to-word" class="tool-tab bg-blue-600 text-white font-medium py-2 px-3 text-xs rounded-xl shadow transition flex items-center gap-1.5">
+                <span>📝</span> PDF to Word
+            </button>
+            <button onclick="setTool('word-to-pdf', 'Word to PDF', 'Convert Microsoft Word files into high-quality PDFs.', '.docx,.doc', false)" id="btn-word-to-pdf" class="tool-tab bg-transparent text-slate-600 hover:bg-slate-100 font-medium py-2 px-3 text-xs rounded-xl transition flex items-center gap-1.5">
+                <span>📄</span> Word to PDF
+            </button>
+            <button onclick="setTool('merge-pdf', 'Merge PDFs', 'Combine multiple PDF files into one document.', '.pdf', true)" id="btn-merge-pdf" class="tool-tab bg-transparent text-slate-600 hover:bg-slate-100 font-medium py-2 px-3 text-xs rounded-xl transition flex items-center gap-1.5">
+                <span>🧩</span> Merge PDF
+            </button>
+            <button onclick="setTool('image-to-pdf', 'Image to PDF', 'Turn JPG, PNG, and WebP images into a PDF file.', '.jpg,.jpeg,.png', true)" id="btn-image-to-pdf" class="tool-tab bg-transparent text-slate-600 hover:bg-slate-100 font-medium py-2 px-3 text-xs rounded-xl transition flex items-center gap-1.5">
+                <span>🖼️</span> Image to PDF
+            </button>
+            <button onclick="setTool('compress-pdf', 'Compress PDF', 'Reduce PDF file size while maintaining clarity.', '.pdf', false)" id="btn-compress-pdf" class="tool-tab bg-transparent text-slate-600 hover:bg-slate-100 font-medium py-2 px-3 text-xs rounded-xl transition flex items-center gap-1.5">
+                <span>🗜️</span> Compress PDF
+            </button>
+            <button onclick="setTool('split-pdf', 'Split PDF', 'Extract selected pages into separate PDF files.', '.pdf', false)" id="btn-split-pdf" class="tool-tab bg-transparent text-slate-600 hover:bg-slate-100 font-medium py-2 px-3 text-xs rounded-xl transition flex items-center gap-1.5">
+                <span>✂️</span> Split PDF
+            </button>
+            <button onclick="setTool('pdf-to-image', 'PDF to Image', 'Convert PDF pages into high-resolution PNG images.', '.pdf', false)" id="btn-pdf-to-image" class="tool-tab bg-transparent text-slate-600 hover:bg-slate-100 font-medium py-2 px-3 text-xs rounded-xl transition flex items-center gap-1.5">
+                <span>📸</span> PDF to Image
+            </button>
+            <button onclick="setTool('rotate-pdf', 'Rotate PDF', 'Rotate your PDF pages by 90°, 180°, or 270°.', '.pdf', false)" id="btn-rotate-pdf" class="tool-tab bg-transparent text-slate-600 hover:bg-slate-100 font-medium py-2 px-3 text-xs rounded-xl transition flex items-center gap-1.5">
+                <span>🔄</span> Rotate PDF
+            </button>
+        </div>
+
+        <!-- Tool Container -->
+        <div class="w-full bg-white p-8 rounded-2xl shadow-md border border-slate-200 text-center max-w-2xl">
+            <h2 id="toolTitle" class="text-2xl font-extrabold text-slate-900 mb-1">PDF to Word</h2>
+            <p id="toolDesc" class="text-xs text-slate-500 mb-6">Convert PDF files into editable Word documents.</p>
+
+            <form id="uploadForm" class="space-y-6">
+                <!-- Dropzone -->
+                <div id="dropzone" class="border-2 border-dashed border-blue-200 hover:border-blue-500 rounded-xl p-8 bg-blue-50/20 cursor-pointer transition flex flex-col items-center justify-center min-h-[190px] group">
+                    <input type="file" id="fileInput" class="hidden" />
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition duration-200">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                    </div>
+                    <p class="text-sm font-bold text-slate-700">Drag & drop files here, or <span class="text-blue-600 underline">browse</span></p>
+                    <p class="text-xs text-slate-400 mt-1" id="fileLimitsHint">Select file to start</p>
+                </div>
+
+                <!-- File Previews -->
+                <div id="previewContainer" class="hidden text-left space-y-2">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Selected File(s)</span>
+                    <div id="fileList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1"></div>
+                </div>
+
+                <!-- Config Options -->
+                <div id="splitOptions" class="hidden text-left space-y-2 bg-slate-50 p-4 rounded-xl border">
+                    <label class="block text-xs font-semibold text-slate-600">Page Ranges (e.g., "1-3, 5"):</label>
+                    <input type="text" id="splitPages" placeholder="Leave empty to extract all pages" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-white" />
+                </div>
+
+                <div id="rotateOptions" class="hidden text-left space-y-2 bg-slate-50 p-4 rounded-xl border">
+                    <label class="block text-xs font-semibold text-slate-600">Rotation Angle:</label>
+                    <select id="rotateAngle" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-white">
+                        <option value="90">90° Clockwise</option>
+                        <option value="180">180° Flip</option>
+                        <option value="270">270° Counter-Clockwise</option>
+                    </select>
+                </div>
+
+                <!-- Progress Indicator -->
+                <div id="progressWrapper" class="hidden space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-slate-600">
+                        <span id="progressStatus">Uploading & Processing...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                        <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-200" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 px-6 rounded-xl transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                    <span>Process File</span>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm space-y-4">
+            <h3 class="font-bold text-lg text-slate-900">Log In</h3>
+            <p class="text-xs text-blue-600 font-semibold bg-blue-50 p-2.5 rounded-lg border border-blue-100">
+                🚀 Logging in unlocks 20 free daily conversions!
+            </p>
+            <form onsubmit="handleAuth(event, '/api/auth/login')">
+                <input type="text" id="loginUsername" placeholder="Username" required class="w-full border rounded-lg px-3 py-2 text-sm mb-3" />
+                <input type="password" id="loginPassword" placeholder="Password" required class="w-full border rounded-lg px-3 py-2 text-sm mb-4" />
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg">Log In</button>
+            </form>
+            <button onclick="closeModal('loginModal')" class="text-xs text-slate-400 w-full text-center">Cancel</button>
+        </div>
+    </div>
+
+    <div id="registerModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm space-y-4">
+            <h3 class="font-bold text-lg text-slate-900">Sign Up</h3>
+            <p class="text-xs text-emerald-700 font-semibold bg-emerald-50 p-2.5 rounded-lg border border-emerald-100">
+                🎉 Create a free account to get 20 daily conversions!
+            </p>
+            <form onsubmit="handleAuth(event, '/api/auth/register')">
+                <input type="text" id="regUsername" placeholder="Username" required class="w-full border rounded-lg px-3 py-2 text-sm mb-3" />
+                <input type="password" id="regPassword" placeholder="Password" required class="w-full border rounded-lg px-3 py-2 text-sm mb-4" />
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg">Sign Up</button>
+            </form>
+            <button onclick="closeModal('registerModal')" class="text-xs text-slate-400 w-full text-center">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 toast-enter z-50 border border-slate-800">
+        <span id="toastIcon">ℹ️</span>
+        <span id="toastMessage" class="text-sm font-medium">Notification message</span>
+    </div>
+
+    <footer class="bg-white border-t py-4 text-center text-xs text-slate-400">
+        DocuTools Suite © 2026 — Built with Python & Flask
+    </footer>
+
+    <script>
+        let currentEndpoint = 'pdf-to-word';
+        let allowMultiple = false;
+        let selectedFiles = [];
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const previewContainer = document.getElementById('previewContainer');
+
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/auth/status');
+                const data = await res.json();
+                const authNav = document.getElementById('authNav');
+
+                const remaining = data.limit - data.used;
+                const badgeColor = remaining <= 3
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
+                if (data.logged_in) {
+                    authNav.innerHTML = `
+                        <div class="text-xs px-3 py-1.5 rounded-full font-semibold border ${badgeColor}">
+                            ${remaining} / ${data.limit} Left Today
+                        </div>
+                        <span class="text-xs font-bold text-slate-700">👤 ${data.username}</span>
+                        <button onclick="logout()" class="text-xs text-red-500 hover:text-red-700 border border-red-200 px-2.5 py-1 rounded-lg">Logout</button>
+                    `;
+                } else {
+                    authNav.innerHTML = `
+                        <div class="text-xs px-3 py-1.5 rounded-full font-semibold border ${badgeColor}">
+                            ${remaining} / ${data.limit} Guest Uses
+                        </div>
+                        <span class="text-xs text-blue-600 font-semibold cursor-pointer hover:underline" onclick="openModal('registerModal')">
+                            Log in for 20/day 🚀
+                        </span>
+                        <button onclick="openModal('loginModal')" class="text-xs font-semibold text-slate-600 hover:text-blue-600 px-3 py-1.5 rounded-lg border">Log In</button>
+                        <button onclick="openModal('registerModal')" class="text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-lg shadow">Sign Up</button>
+                    `;
+                }
+            } catch(e) {}
+        }
+        checkAuth();
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        async function handleAuth(e, url) {
+            e.preventDefault();
+            const isReg = url.includes('register');
+            const username = document.getElementById(isReg ? 'regUsername' : 'loginUsername').value;
+            const password = document.getElementById(isReg ? 'regPassword' : 'loginPassword').value;
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(data.message, 'success');
+                closeModal(isReg ? 'registerModal' : 'loginModal');
+                checkAuth();
+            } else {
+                showToast(data.error, 'error');
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            showToast('Logged out. Switched back to guest quota.', 'info');
+            checkAuth();
+        }
+
+        ['dragenter', 'dragover'].forEach(name => dropzone.addEventListener(name, (e) => e.preventDefault()));
+        dropzone.addEventListener('drop', (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
+        dropzone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        function handleFiles(files) { selectedFiles = Array.from(files); renderPreviews(); }
+        function renderPreviews() {
+            if (!selectedFiles.length) return previewContainer.classList.add('hidden');
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2.5 bg-slate-50 border rounded-lg text-xs';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="text-blue-500 font-bold">📄</span>
+                        <span class="truncate font-medium text-slate-700">${file.name}</span>
+                    </div>
+                    <button type="button" onclick="removeFile(${index})" class="text-slate-400 hover:text-red-500 font-bold ml-2">✕</button>
+                `;
+                fileList.appendChild(item);
+            });
+            previewContainer.classList.remove('hidden');
+        }
+
+        function removeFile(index) { selectedFiles.splice(index, 1); renderPreviews(); }
+
+        function setTool(endpoint, title, desc, acceptTypes, multiple) {
+            currentEndpoint = endpoint;
+            allowMultiple = multiple;
+            selectedFiles = [];
+            renderPreviews();
+
+            document.getElementById('toolTitle').textContent = title;
+            document.getElementById('toolDesc').textContent = desc;
+            fileInput.accept = acceptTypes;
+            fileInput.multiple = multiple;
+            fileInput.value = '';
+
+            document.getElementById('splitOptions').classList.toggle('hidden', endpoint !== 'split-pdf');
+            document.getElementById('rotateOptions').classList.toggle('hidden', endpoint !== 'rotate-pdf');
+
+            document.querySelectorAll('.tool-tab').forEach(b => b.className = 'tool-tab bg-transparent text-slate-600 hover:bg-slate-100 font-medium py-2 px-3 text-xs rounded-xl transition flex items-center gap-1.5');
+            document.getElementById(`btn-${endpoint}`).className = 'tool-tab bg-blue-600 text-white font-medium py-2 px-3 text-xs rounded-xl shadow transition flex items-center gap-1.5';
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : type === 'error' ? '⚠️' : 'ℹ️';
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('toast-enter');
+            toast.classList.add('toast-show');
+            setTimeout(() => { toast.classList.remove('toast-show'); toast.classList.add('toast-enter'); }, 3500);
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!selectedFiles.length) return showToast('Please select at least one file.', 'error');
+
+            const formData = new FormData();
+            if (allowMultiple) selectedFiles.forEach(f => formData.append('files', f));
+            else formData.append('file', selectedFiles[0]);
+
+            if (currentEndpoint === 'split-pdf') formData.append('pages', document.getElementById('splitPages').value);
+            else if (currentEndpoint === 'rotate-pdf') formData.append('angle', document.getElementById('rotateAngle').value);
+
+            const submitBtn = document.getElementById('submitBtn');
+            const progressWrapper = document.getElementById('progressWrapper');
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+
+            submitBtn.disabled = true;
+            progressWrapper.classList.remove('hidden');
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `/api/convert/${currentEndpoint}`, true);
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                }
+            };
+
+            xhr.onload = async function () {
+                submitBtn.disabled = false;
+                progressWrapper.classList.add('hidden');
+
+                if (xhr.status === 200) {
+                    if (currentEndpoint === 'split-pdf') {
+                        const data = JSON.parse(xhr.responseText);
+                        data.files.forEach((url, i) => {
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Split_Page_${i + 1}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                        });
+                        showToast(`Processed ${data.files.length} split PDF files!`, 'success');
+                    } else {
+                        const blob = xhr.response;
+                        const url = window.URL.createObjectURL(blob);
+
+                        let filename = 'Converted_Document';
+                        const disposition = xhr.getResponseHeader('Content-Disposition');
+                        if (disposition && disposition.indexOf('filename=') !== -1) {
+                            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                            if (matches != null && matches[1]) {
+                                filename = matches[1].replace(/['"]/g, '');
+                            }
+                        }
+
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+
+                        setTimeout(() => {
+                            if (document.body.contains(a)) {
+                                document.body.removeChild(a);
+                            }
+                            window.URL.revokeObjectURL(url);
+                        }, 2000);
+
+                        showToast('Conversion completed! Download started.', 'success');
+                    }
+                    checkAuth();
+                } else {
+                    let errMsg = 'Conversion failed';
+                    try {
+                        let text = '';
+                        if (xhr.response instanceof Blob) {
+                            text = await xhr.response.text();
+                        } else {
+                            text = xhr.responseText;
+                        }
+                        const err = JSON.parse(text);
+                        errMsg = err.error || errMsg;
+                    } catch(e) {}
+                    showToast(errMsg, 'error');
+                }
+            };
+
+            xhr.responseType = currentEndpoint === 'split-pdf' ? 'text' : 'blob';
+            xhr.send(formData);
+        });
+    </script>
+</body>
+</html>
