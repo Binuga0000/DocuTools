@@ -1,5 +1,8 @@
 Flask
 Flask-SQLAlchemy
 Flask-Bcrypt
-gunicorn
 PyMuPDF
+pdf2docx
+pypdf
+python-docx
+gunicorn
