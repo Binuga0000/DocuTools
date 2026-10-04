@@ -11,7 +11,6 @@ from flask_bcrypt import Bcrypt
 from pdf2docx import Converter
 from docx import Document
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
-from docx2pdf import convert as docx2pdf_convert
 from PIL import Image
 import fitz  # PyMuPDF
 from apscheduler.schedulers.background import BackgroundScheduler
