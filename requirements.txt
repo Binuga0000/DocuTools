@@ -9,4 +9,5 @@ python-docx
 reportlab
 pdfkit
 Pillow
+APScheduler
 gunicorn
