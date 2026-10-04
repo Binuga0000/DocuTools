@@ -4,5 +4,9 @@ Flask-Bcrypt
 PyMuPDF
 pdf2docx
 pypdf
+PyPDF2
 python-docx
+reportlab
+pdfkit
+Pillow
 gunicorn
